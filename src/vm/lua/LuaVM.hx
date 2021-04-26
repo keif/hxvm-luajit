@@ -14,14 +14,14 @@ class LuaException extends Exception {}
 class LuaVM {
 	public var version(default, never):String = Lua.version();
 
-	public static var l:State;
+	public static var state:State;
 	static var funcs = [];
 
 	public function new() {
-		l = LuaL.newstate();
-		LuaL.openlibs(l);
+		state = LuaL.newstate();
+		LuaL.openlibs(state);
 
-		Lua.init_callbacks(l);
+		Lua.init_callbacks(state);
 	}
 
 	#if tink_core
@@ -34,29 +34,27 @@ class LuaVM {
 
 	public function run(script:String, ?globals:DynamicAccess<Any>):Any {
 		if(globals != null) for(key in globals.keys()) setGlobalVar(key, globals.get(key));
-		//if(luaL_dostring(l, script) == OK) return getReturnValues(l) else throw getErrorMessage(l);
-		if(LuaL.dostring(l,script)!=0)
-			throw getErrorMessage(l);
+		if(LuaL.dostring(state,script)!=0)
+			throw getErrorMessage(state);
 		else
-			return getReturnValues(l);
+			return getReturnValues(state);
 	}
 
 	public function runFile(script:String, ?globals:DynamicAccess<Any>):Any {
 		if(globals != null) for(key in globals.keys()) setGlobalVar(key, globals.get(key));
-		//if(luaL_dostring(l, script) == OK) return getReturnValues(l) else throw getErrorMessage(l);
-		if(LuaL.dofile(l,script)!=0)
-			throw getErrorMessage(l);
+		if(LuaL.dofile(state,script)!=0)
+			throw getErrorMessage(state);
 		else
-			return getReturnValues(l);
+			return getReturnValues(state);
 	}
 
 	public function call(name:String, args:Array<Any>, ?type: String):Any {
 		var result : Any = null;
-		Lua.getglobal(l, name);
-		for(arg in args) Convert.toLua(l, arg);
-		result = Lua.pcall(l, args.length, 1, 1);
-		var luaError = Lua.tostring(l,result);
-		var haxeError = getErrorMessage(l);
+		Lua.getglobal(state, name);
+		for(arg in args) Convert.toLua(state, arg);
+		result = Lua.pcall(state, args.length, 1, 1);
+		var luaError = Lua.tostring(state,result);
+		var haxeError = getErrorMessage(state);
 		if(luaError!=null && haxeError!=null){
 			throw new LuaException(luaError);
 		}
@@ -115,14 +113,14 @@ class LuaVM {
 
 
 	public function setGlobalVar(name:String, value:Any) {
-		Convert.toLua(l, value);
-		Lua.setglobal(l, name);
+		Convert.toLua(state, value);
+		Lua.setglobal(state, name);
 	}
 
 	public function getGlobalVar(name:String, ?type:String):Dynamic{
 		var result:Any = null;
-		Lua.getglobal(l,name);
-		result = Convert.fromLua(l,0);
+		Lua.getglobal(state,name);
+		result = Convert.fromLua(state,0);
 
 		if(result!=null){
 			return convert(result,type);
@@ -132,31 +130,31 @@ class LuaVM {
 	}
 
 	public function unsetGlobalVar(name:String) {
-		Lua.pushnil(l);
-		Lua.setglobal(l, name);
+		Lua.pushnil(state);
+		Lua.setglobal(state, name);
 	}
 
 	public function destroy() {
 		trace("closed lua");
-		Lua.close(l);
+		Lua.close(state);
 		l = null;
 	}
 
 
-	static function getReturnValues(l) {
+	static function getReturnValues(state) {
 		var lua_v:Int;
 		var v:Any = null;
-		while((lua_v = Lua.gettop(l)) != 0) {
-			v = Convert.fromLua(l, lua_v);
-			Lua.pop(l, 1);
+		while((lua_v = Lua.gettop(state)) != 0) {
+			v = Convert.fromLua(state, lua_v);
+			Lua.pop(state, 1);
 		}
 		// returns the first value (in case of multi return) returned from the Lua function
 		return v;
 	}
 
-	static function getErrorMessage(l) {
-		var v:String = Lua.tostring(l, -1);
-		Lua.pop(l, 1);
+	static function getErrorMessage(state) {
+		var v:String = Lua.tostring(state, -1);
+		Lua.pop(state, 1);
 		return v;
 	}
 
