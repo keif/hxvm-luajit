@@ -135,9 +135,11 @@ class LuaVM {
 	}
 
 	public function destroy() {
-		trace("closed lua");
-		Lua.close(state);
-		state = null;
+		if(state !=null){
+			trace("closed lua");
+			Lua.close(state);
+			state = null;
+		}
 	}
 
 
