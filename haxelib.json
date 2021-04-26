@@ -1,5 +1,5 @@
 {
-  "name": "hxvm-lua",
+  "name": "hxvm-luajit",
   "license": "MIT",
   "tags": [
     "vm",

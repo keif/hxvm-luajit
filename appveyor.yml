@@ -14,7 +14,7 @@ install:
 
 # Post-install test scripts.
 test_script:
-  - haxelib run travix cpp -lib linc_lua # -D mac
+  - haxelib run travix cpp -lib linc_luajit # -D mac
   # - haxelib run travix js -lib hxjs-fengari
   - haxelib run travix node -lib hxjs-fengari
 
