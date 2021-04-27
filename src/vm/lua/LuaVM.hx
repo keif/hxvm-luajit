@@ -113,8 +113,15 @@ class LuaVM {
 
 
 	public function setGlobalVar(name:String, value:Any) {
-		Convert.toLua(state, value);
-		Lua.setglobal(state, name);
+		//Convert.toLua(state, value);
+		//Lua.setglobal(state, name);
+		switch Type.typeof(value){
+			case TFunction:
+				Lua_helper.add_callback(state,name,value);
+			default:
+				Convert.toLua(state, value);
+				Lua.setglobal(state, name);
+		}
 	}
 
 	public function getGlobalVar(name:String, ?type:String):Dynamic{
