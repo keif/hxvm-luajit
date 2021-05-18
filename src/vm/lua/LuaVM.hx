@@ -14,7 +14,7 @@ class LuaException extends Exception {}
 class LuaVM {
 	public var version(default, never):String = Lua.version();
 
-	public static var state:State;
+	public var state:State;
 	static var funcs = [];
 
 	public function new() {
@@ -35,7 +35,7 @@ class LuaVM {
 	public function run(script:String, ?globals:DynamicAccess<Any>):Any {
 		if(globals != null) for(key in globals.keys()) setGlobalVar(key, globals.get(key));
 		if(LuaL.dostring(state,script)!=0)
-			throw getErrorMessage(state);
+			throw new LuaException(getErrorMessage(state));
 		else
 			return getReturnValues(state);
 	}
@@ -43,7 +43,7 @@ class LuaVM {
 	public function runFile(script:String, ?globals:DynamicAccess<Any>):Any {
 		if(globals != null) for(key in globals.keys()) setGlobalVar(key, globals.get(key));
 		if(LuaL.dofile(state,script)!=0)
-			throw getErrorMessage(state);
+			throw new LuaException(getErrorMessage(state));
 		else
 			return getReturnValues(state);
 	}
