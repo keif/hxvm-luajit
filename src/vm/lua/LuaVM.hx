@@ -49,21 +49,25 @@ class LuaVM {
 	}
 
 	public function call(name:String, args:Array<Any>, ?type: String):Any {
+
 		var result : Any = null;
 		Lua.getglobal(state, name);
-		for(arg in args) Convert.toLua(state, arg);
-		result = Lua.pcall(state, args.length, 1, 1);
-		var luaError = Lua.tostring(state,result);
-		var haxeError = getErrorMessage(state);
-		if(luaError!=null && haxeError!=null){
-			//throw new LuaException(luaError);
-			trace("LUA ERROR: " + luaError);
+		if(Lua.isfunction(state,-1)){
+			for(arg in args) Convert.toLua(state, arg);
+			result = Lua.pcall(state, args.length, 1, 0);
+
+			if(result!=0){
+				var err = getErrorMessage(state);
+				LuaL.error(state,err);
+				trace("LUA ERROR: " + err);
+			}else{
+				return convert(Convert.fromLua(state,-1),type);
+			}
 		}
-		if(result != null){
-			return convert(result,type);
-		}else{
-			return null;
-		}
+		return null;
+
+
+
 	}
 
 	// https://notabug.org/endes/haxe-lua-plugins/src/master/src/beartek/lua_plugins/Luaplugin.hx
@@ -128,7 +132,7 @@ class LuaVM {
 	public function getGlobalVar(name:String, ?type:String):Dynamic{
 		var result:Any = null;
 		Lua.getglobal(state,name);
-		result = Convert.fromLua(state,0);
+		result = Convert.fromLua(state,-1);
 
 		if(result!=null){
 			return convert(result,type);
