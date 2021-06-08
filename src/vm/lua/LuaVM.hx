@@ -56,7 +56,8 @@ class LuaVM {
 		var luaError = Lua.tostring(state,result);
 		var haxeError = getErrorMessage(state);
 		if(luaError!=null && haxeError!=null){
-			throw new LuaException(luaError);
+			//throw new LuaException(luaError);
+			trace("LUA ERROR: " + luaError);
 		}
 		if(result != null){
 			return convert(result,type);
