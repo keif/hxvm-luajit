@@ -49,22 +49,26 @@ class LuaVM {
 	}
 
 	public function call(name:String, args:Array<Any>, ?type: String):Any {
-
+		var retValue:Any = null;
 		var result : Any = null;
-		Lua.getglobal(state, name);
-		if(Lua.isfunction(state,-1)){
-			for(arg in args) Convert.toLua(state, arg);
-			result = Lua.pcall(state, args.length, 1, 0);
+		try{
+			Lua.getglobal(state, name);
+			if(Lua.isfunction(state,-1)){
+				for(arg in args) Convert.toLua(state, arg);
+				result = Lua.pcall(state, args.length, 1, 0);
 
-			if(result!=0){
-				var err = getErrorMessage(state);
-				LuaL.error(state,err);
-				trace("LUA ERROR: " + err);
-			}else{
-				return convert(Convert.fromLua(state,-1),type);
+				if(result!=0){
+					var err = getErrorMessage(state);
+					LuaL.error(state,err);
+					trace("LUA ERROR: " + err);
+				}else{
+					retValue = convert(Convert.fromLua(state,-1),type);
+				}
 			}
+		}catch(e:Any){
+			trace(e);
 		}
-		return null;
+		return retValue;
 
 
 
@@ -120,12 +124,16 @@ class LuaVM {
 	public function setGlobalVar(name:String, value:Any) {
 		//Convert.toLua(state, value);
 		//Lua.setglobal(state, name);
-		switch Type.typeof(value){
-			case TFunction:
-				Lua_helper.add_callback(state,name,value);
-			default:
-				Convert.toLua(state, value);
-				Lua.setglobal(state, name);
+		try{
+			switch Type.typeof(value){
+				case TFunction:
+					Lua_helper.add_callback(state,name,value);
+				default:
+					Convert.toLua(state, value);
+					Lua.setglobal(state, name);
+			}
+		}catch(e:Any){
+			trace(e);
 		}
 	}
 
@@ -133,7 +141,7 @@ class LuaVM {
 		var result:Any = null;
 		Lua.getglobal(state,name);
 		result = Convert.fromLua(state,-1);
-
+		Lua.pop(state,1);
 		if(result!=null){
 			return convert(result,type);
 		}else{
