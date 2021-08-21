@@ -53,7 +53,7 @@ class LuaVM {
 		var result : Any = null;
 		try{
 			Lua.getglobal(state, name);
-			if(Lua.isfunction(state,-1)){
+			if(Lua.iscfunction(state,-1)){
 				for(arg in args) Convert.toLua(state, arg);
 				result = Lua.pcall(state, args.length, 1, 0);
 
